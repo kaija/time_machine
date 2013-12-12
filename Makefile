@@ -1,7 +1,7 @@
 OBJS=time_machine.o simclist.o
-CFLAGS=-fPIC
+CFLAGS=-fPIC -Wall
 SHARED_LIB=libtimeout.so
-LDFLAGS=-ltimeout -L.
+LDFLAGS=-ltimeout -L. -lpthread
 all: shared test
 
 shared: $(OBJS)
