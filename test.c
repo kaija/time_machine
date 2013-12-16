@@ -40,6 +40,9 @@ int main()
     }
     b = rudp_curr_time();
     printf("test insert %d elements used %lu usec\n",TEST_COUNT, b-a);
+
+    tm_user_delete_by_name("kaija");
+
     tm_loop_thread(400);
     while(1){
         for(c = 0; c < TEST_COUNT ; c++){

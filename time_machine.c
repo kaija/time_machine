@@ -16,7 +16,7 @@ struct tm_thread_param{
     int interval;
 };
 static struct time_machine tmd;
-int list_comparator_time(const void *a, const void *b)
+static int list_comparator_time(const void *a, const void *b)
 {
     struct user_info *pre = (struct user_info *)a;
     struct user_info *pos = (struct user_info *)b;
@@ -29,6 +29,24 @@ unsigned long tm_get_time()
   struct timeval tv;
   gettimeofday(&tv,NULL);
   return 1000000 * tv.tv_sec + tv.tv_usec;
+}
+
+static int tm_id_seeker(const void *data, const void *id)
+{
+    struct user_info *user = (struct user_info *) data;
+    if(user->id == *((int *)id)){
+        return 1;
+    }
+    return 0;
+}
+
+static int tm_name_seeker(const void *data, const void *name)
+{
+    struct user_info *user = (struct user_info *) data;
+    if(user && strncmp(user->name, (char *)name, strlen((char *)name))==0){
+        return 1;
+    }
+    return 0;
 }
 
 int tm_init()
@@ -67,6 +85,48 @@ int tm_user_insert(char *name, int id, int timeout)
         }
     }else{
         ret = -TM_OUT_OF_MEMORY;
+    }
+    pthread_mutex_unlock(&tmd.list_mutex);
+    return ret;
+}
+
+int tm_user_delete_by_id(int id)
+{
+    int ret = 0;
+    pthread_mutex_lock(&tmd.list_mutex);
+    list_attributes_seeker(&tmd.user_list, tm_id_seeker);
+    struct user_info *user = (struct user_info *)list_seek(&tmd.user_list, &id);
+    if(user != NULL){
+        //TODO add delete user behavior
+        printf("find user by id %s delete it\n", user->name);
+        if(tmd.timeout_cb){
+            tmd.timeout_cb(user);
+            free(user);
+        }
+        list_delete(&tmd.user_list, user);
+    }else{
+        ret = -1;
+    }
+    pthread_mutex_unlock(&tmd.list_mutex);
+    return ret;
+}
+
+int tm_user_delete_by_name(char *name)
+{
+    int ret = 0;
+    pthread_mutex_lock(&tmd.list_mutex);
+    list_attributes_seeker(&tmd.user_list, tm_name_seeker);
+    struct user_info *user = (struct user_info *)list_seek(&tmd.user_list, name);
+    if(user != NULL){
+        //TODO add delete user behavior
+        printf("find user by id %s delete it\n", user->name);
+        if(tmd.timeout_cb){
+            tmd.timeout_cb(user);
+            free(user);
+        }
+        list_delete(&tmd.user_list, user);
+    }else{
+        ret = -1;
     }
     pthread_mutex_unlock(&tmd.list_mutex);
     return ret;
