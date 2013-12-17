@@ -79,6 +79,7 @@ int tm_user_insert(char *name, int id, int timeout)
         user->timeout = user->start_time + 1000000 * timeout;
         if(list_append(&tmd.user_list, user) == 1){
             //printf("Add user %s successful\n", name);
+            list_attributes_comparator(&tmd.user_list, list_comparator_time);
             list_sort(&tmd.user_list, 1);
         }else{
             ret =  -TM_LINK_LIST_ERROR;
@@ -103,6 +104,7 @@ int tm_user_delete_by_id(int id)
             tmd.timeout_cb(user);
             free(user);
         }
+        list_attributes_comparator(&tmd.user_list, NULL);
         list_delete(&tmd.user_list, user);
     }else{
         ret = -1;
@@ -124,6 +126,7 @@ int tm_user_delete_by_name(char *name)
             tmd.timeout_cb(user);
             free(user);
         }
+        list_attributes_comparator(&tmd.user_list, NULL);
         list_delete(&tmd.user_list, user);
     }else{
         ret = -1;
@@ -200,6 +203,7 @@ int tm_loop_thread(int interval)
 
 void tm_sort()
 {
+    list_attributes_comparator(&tmd.user_list, list_comparator_time);
     list_sort(&tmd.user_list, 1);
 }
 
